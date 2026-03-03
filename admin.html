@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FotoLight Admin Panel</title>
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <img src="img/logo.png" alt="Foto Light Media" class="login-logo" />
+        <h1>Admin Login</h1>
+        <p>Welcome back. Sign in to manage the studio site.</p>
+        <form id="login-form">
+          <label>
+            Username
+            <input type="text" name="username" placeholder="admin" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" placeholder="••••••" required />
+          </label>
+          <button class="btn" type="submit">Sign In</button>
+        </form>
+        <div class="login-hint">Default: admin / fotolight2026</div>
+      </div>
+    </div>
+
+    <div class="admin-app hidden" id="admin-app">
+      <aside class="sidebar">
+        <div class="sidebar__brand">
+          <img src="img/logo.png" alt="Foto Light Media" />
+          <span>FotoLight Admin</span>
+        </div>
+        <nav class="sidebar__nav">
+          <button class="nav-item is-active" data-section="dashboard">📊 Dashboard</button>
+          <button class="nav-item" data-section="hero">🏠 Hero Section</button>
+          <button class="nav-item" data-section="ticker">📢 Ticker / Clients</button>
+          <button class="nav-item" data-section="about">📖 About</button>
+          <button class="nav-item" data-section="services">🎯 Services</button>
+          <button class="nav-item" data-section="useCases">💼 Use Cases</button>
+          <button class="nav-item" data-section="portfolio">🖼️ Portfolio</button>
+          <button class="nav-item" data-section="photos">📸 Photos</button>
+          <button class="nav-item" data-section="videos">🎬 Videos</button>
+          <button class="nav-item" data-section="stats">📈 Stats</button>
+          <button class="nav-item" data-section="testimonials">💬 Testimonials</button>
+          <button class="nav-item" data-section="contact">📞 Contact</button>
+          <button class="nav-item" data-section="footer">🔗 Footer</button>
+          <button class="nav-item" data-section="settings">⚙️ Settings</button>
+        </nav>
+        <div class="sidebar__footer">
+          <button class="nav-item" id="logout-btn">🚪 Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="main-header">
+          <div>
+            <p class="main-eyebrow">Admin Panel</p>
+            <h1 id="section-title">Dashboard</h1>
+            <p class="main-subtitle" id="section-subtitle">
+              Manage every part of the FotoLight Media Studio experience.
+            </p>
+          </div>
+          <div class="main-actions">
+            <button class="btn btn--ghost" id="preview-site">Preview Site</button>
+            <button class="btn" id="save-section">Save Changes</button>
+          </div>
+        </header>
+
+        <section class="section-content" id="section-content"></section>
+      </main>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="confirm-modal hidden" id="confirm-modal">
+      <div class="confirm-card">
+        <h3 id="confirm-title">Confirm Action</h3>
+        <p id="confirm-message">Are you sure you want to continue?</p>
+        <div class="confirm-actions">
+          <button class="btn btn--ghost" id="confirm-cancel">Cancel</button>
+          <button class="btn" id="confirm-accept">Yes, Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="import-file" accept="application/json" class="hidden" />
+
+    <script src="fotolight-default-data.js"></script>
+    <script src="admin.js"></script>
+  </body>
+</html>
