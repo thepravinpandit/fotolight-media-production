@@ -47,12 +47,12 @@ const DEFAULT_DATA = window.FOTOLIGHT_DEFAULT_DATA || {
     highlights: ["Wedding Photography", "Custom Albums", "Cinematic Films"],
   },
   ticker: [
-    "Vanta Apparel",
-    "Solar & Co",
-    "Atlas Studios",
-    "Maison Rue",
-    "Nova Cosmetics",
-    "Echo Mobility",
+    // "Vanta Apparel",
+    // "Solar & Co",
+    // "Atlas Studios",
+    // "Maison Rue",
+    // "Nova Cosmetics",
+    // "Echo Mobility",
   ],
   about: {
     eyebrow: "About us",
@@ -688,33 +688,32 @@ const renderDashboard = () => {
       <p>Today is ${escapeHtml(now)}</p>
       <div class="card-grid">
         ${stats
-          .map(
-            (item) => `
+      .map(
+        (item) => `
           <div class="card">
             <h3>${escapeHtml(item.value)}</h3>
             <p>${escapeHtml(item.label)}</p>
           </div>
         `
-          )
-          .join("")}
+      )
+      .join("")}
       </div>
     </div>
     <div class="card">
       <h3>Recent activity</h3>
-      ${
-        log.length
-          ? `<div class="card-grid">${log
-              .map(
-                (entry) => `
+      ${log.length
+      ? `<div class="card-grid">${log
+        .map(
+          (entry) => `
             <div class="list-item">
               <strong>${escapeHtml(entry.action)}</strong>
               <span class="badge">${escapeHtml(entry.timestamp)}</span>
             </div>
           `
-              )
-              .join("")}</div>`
-          : `<p>No edits logged yet.</p>`
-      }
+        )
+        .join("")}</div>`
+      : `<p>No edits logged yet.</p>`
+    }
     </div>
     <div class="card">
       <h3>Quick actions</h3>
@@ -752,8 +751,8 @@ const renderHero = () => {
         <button class="small-btn" data-action="add-item" data-path="hero.cta">Add CTA</button>
       </div>
       ${hero.cta
-        .map(
-          (cta, index) => `
+      .map(
+        (cta, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">CTA ${index + 1}</span>
@@ -773,8 +772,8 @@ const renderHero = () => {
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
     <div class="card">
       <div class="row">
@@ -782,8 +781,8 @@ const renderHero = () => {
         <button class="small-btn" data-action="add-item" data-path="hero.slides">Add Slide</button>
       </div>
       ${hero.slides
-        .map(
-          (slide, index) => `
+      .map(
+        (slide, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Slide ${index + 1}</span>
@@ -809,8 +808,8 @@ const renderHero = () => {
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
     <div class="card">
       <div class="row">
@@ -818,8 +817,8 @@ const renderHero = () => {
         <button class="small-btn" data-action="add-item" data-path="hero.stats">Add Stat</button>
       </div>
       ${hero.stats
-        .map(
-          (stat, index) => `
+      .map(
+        (stat, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Stat ${index + 1}</span>
@@ -839,8 +838,8 @@ const renderHero = () => {
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
     <div class="card">
       <div class="row">
@@ -848,8 +847,8 @@ const renderHero = () => {
         <button class="small-btn" data-action="add-item" data-path="hero.highlights">Add Highlight</button>
       </div>
       ${hero.highlights
-        .map(
-          (highlight, index) => `
+      .map(
+        (highlight, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Tag ${index + 1}</span>
@@ -864,8 +863,8 @@ const renderHero = () => {
           </label>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
   `;
 };
@@ -878,8 +877,8 @@ const renderTicker = () => {
         <button class="small-btn" data-action="add-item" data-path="ticker">Add Client</button>
       </div>
       ${state.data.ticker
-        .map(
-          (client, index) => `
+      .map(
+        (client, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">${index + 1}</span>
@@ -892,8 +891,8 @@ const renderTicker = () => {
           <input data-bind="ticker.${index}" value="${escapeHtml(client)}" />
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
   `;
 };
@@ -921,8 +920,8 @@ const renderAbout = () => {
         <button class="small-btn" data-action="add-item" data-path="about.features">Add Feature</button>
       </div>
       ${about.features
-        .map(
-          (feature, index) => `
+      .map(
+        (feature, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Feature ${index + 1}</span>
@@ -942,8 +941,8 @@ const renderAbout = () => {
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
     <div class="card">
       <h3>Closing & Tagline</h3>
@@ -974,8 +973,8 @@ const renderServices = () => {
         <button class="small-btn" data-action="add-item" data-path="services">Add Service</button>
       </div>
       ${state.data.services
-        .map(
-          (service, index) => `
+      .map(
+        (service, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Service ${index + 1}</span>
@@ -1001,8 +1000,8 @@ const renderServices = () => {
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
   `;
 };
@@ -1016,8 +1015,8 @@ const renderUseCases = () => {
         <button class="small-btn" data-action="add-item" data-path="useCases">Add Use Case</button>
       </div>
       ${state.data.useCases
-        .map(
-          (item, index) => `
+      .map(
+        (item, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Use Case ${index + 1}</span>
@@ -1040,19 +1039,19 @@ const renderUseCases = () => {
           </div>
           <div class="field-grid">
             ${item.bullets
-              .map(
-                (bullet, bulletIndex) => `
+            .map(
+              (bullet, bulletIndex) => `
               <label>Bullet ${bulletIndex + 1}
                 <input data-bind="useCases.${index}.bullets.${bulletIndex}" value="${escapeHtml(bullet)}" />
               </label>
             `
-              )
-              .join("")}
+            )
+            .join("")}
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
     <div class="card">
       <h3>Use Cases CTA</h3>
@@ -1084,8 +1083,8 @@ const renderPortfolio = () => {
       </div>
       <div class="portfolio-grid">
         ${state.data.portfolio
-          .map(
-            (item, index) => `
+      .map(
+        (item, index) => `
           <div class="portfolio-item">
             <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}" />
             <input data-bind="portfolio.${index}.alt" value="${escapeHtml(item.alt)}" placeholder="Alt text" />
@@ -1097,8 +1096,8 @@ const renderPortfolio = () => {
             </div>
           </div>
         `
-          )
-          .join("")}
+      )
+      .join("")}
       </div>
     </div>
   `;
@@ -1110,8 +1109,8 @@ const renderPhotos = () => {
       <h3>Photo Tiles</h3>
       <div class="portfolio-grid">
         ${state.data.photos
-          .map(
-            (photo, index) => `
+      .map(
+        (photo, index) => `
           <div class="portfolio-item">
             <img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt)}" />
             <label>Upload Photo
@@ -1120,8 +1119,8 @@ const renderPhotos = () => {
             <input data-bind="photos.${index}.alt" value="${escapeHtml(photo.alt || "")}" placeholder="Alt text" />
           </div>
         `
-          )
-          .join("")}
+      )
+      .join("")}
       </div>
     </div>
   `;
@@ -1135,8 +1134,8 @@ const renderVideos = () => {
         <button class="small-btn" data-action="add-item" data-path="videos">Add Video</button>
       </div>
       ${state.data.videos
-        .map(
-          (video, index) => `
+      .map(
+        (video, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Video ${index + 1}</span>
@@ -1169,8 +1168,8 @@ const renderVideos = () => {
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
   `;
 };
@@ -1183,8 +1182,8 @@ const renderStats = () => {
         <button class="small-btn" data-action="add-item" data-path="stats">Add Stat</button>
       </div>
       ${state.data.stats
-        .map(
-          (stat, index) => `
+      .map(
+        (stat, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Stat ${index + 1}</span>
@@ -1204,8 +1203,8 @@ const renderStats = () => {
           </div>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
   `;
 };
@@ -1218,8 +1217,8 @@ const renderTestimonials = () => {
         <button class="small-btn" data-action="add-item" data-path="testimonials">Add Testimonial</button>
       </div>
       ${state.data.testimonials
-        .map(
-          (testimonial, index) => `
+      .map(
+        (testimonial, index) => `
         <div class="list-item">
           <div class="row">
             <span class="badge">Testimonial ${index + 1}</span>
@@ -1237,8 +1236,8 @@ const renderTestimonials = () => {
           </label>
         </div>
       `
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
   `;
 };
@@ -1267,21 +1266,21 @@ const renderContact = () => {
       </label>
       <label>Description
         <textarea rows="2" data-bind="contact.firstTime.description">${escapeHtml(
-          contact.firstTime.description
-        )}</textarea>
+    contact.firstTime.description
+  )}</textarea>
       </label>
       <div class="field-grid">
         ${contact.firstTime.bullets
-          .map(
-            (bullet, index) => `
+      .map(
+        (bullet, index) => `
           <label>Bullet ${index + 1}
             <input data-bind="contact.firstTime.bullets.${index}" value="${escapeHtml(
-              bullet
-            )}" />
+          bullet
+        )}" />
           </label>
         `
-          )
-          .join("")}
+      )
+      .join("")}
       </div>
     </div>
     <div class="card">
@@ -1848,3 +1847,72 @@ const init = async () => {
 };
 
 init();
+
+/* =====================================================
+   UI ANIMATIONS — Scroll progress + reveal observer
+   ===================================================== */
+
+// Scroll progress bar
+(function () {
+  const bar = document.getElementById("admin-scroll-progress");
+  if (!bar) return;
+  const main = document.querySelector(".main") || document.documentElement;
+  const update = () => {
+    const el = document.querySelector(".main") || document.documentElement;
+    const scrollable = el.scrollHeight - el.clientHeight;
+    if (scrollable <= 0) { bar.style.width = "0%"; return; }
+    bar.style.width = Math.min(100, (el.scrollTop / scrollable) * 100) + "%";
+  };
+  (document.querySelector(".main") || window).addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update, { passive: true });
+})();
+
+// Scroll-reveal observer for [data-animate], [data-stagger] and variants
+(function () {
+  const selectors = [
+    "[data-animate]",
+    "[data-animate-left]",
+    "[data-animate-right]",
+    "[data-animate-scale]",
+    "[data-stagger]",
+  ];
+
+  const observe = (root) => {
+    const targets = root.querySelectorAll(selectors.join(","));
+    if (!targets.length || !window.IntersectionObserver) {
+      // Fallback: make everything visible
+      targets.forEach(el => el.classList.add("is-visible"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    targets.forEach(el => io.observe(el));
+  };
+
+  // Run on section switch: re-observe after section content renders
+  const origRenderSection = typeof renderSection === "function" ? renderSection : null;
+  const patchObserver = () => {
+    setTimeout(() => {
+      const content = document.getElementById("section-content");
+      if (content) observe(content);
+    }, 80);
+  };
+  // Observe whenever content is injected (MutationObserver on section container)
+  const sectionEl = document.getElementById("section-content");
+  if (sectionEl) {
+    const mo = new MutationObserver(() => patchObserver());
+    mo.observe(sectionEl, { childList: true, subtree: false });
+  }
+  // Also run once on page load
+  document.addEventListener("DOMContentLoaded", () => observe(document.body), { once: true });
+  observe(document.body);
+})();

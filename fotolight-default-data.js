@@ -56,9 +56,9 @@ window.FOTOLIGHT_DEFAULT_DATA = {
     ]
   },
   "ticker": [
-    "Vanta Apparel",
-    "Solar & Co",
-    "Atlas Studios"
+    // "Vanta Apparel",
+    // "Solar & Co",
+    // "Atlas Studios"
   ],
   "about": {
     "eyebrow": "About us",

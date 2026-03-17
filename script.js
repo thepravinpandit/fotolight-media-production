@@ -41,12 +41,12 @@ const DEFAULT_DATA = window.FOTOLIGHT_DEFAULT_DATA || {
     highlights: ["Wedding Photography", "Custom Albums", "Cinematic Films"],
   },
   ticker: [
-    "Vanta Apparel",
-    "Solar & Co",
-    "Atlas Studios",
-    "Maison Rue",
-    "Nova Cosmetics",
-    "Echo Mobility",
+    // "Vanta Apparel",
+    // "Solar & Co",
+    // "Atlas Studios",
+    // "Maison Rue",
+    // "Nova Cosmetics",
+    // "Echo Mobility",
   ],
   about: {
     eyebrow: "About us",
@@ -363,9 +363,8 @@ const applyHero = (hero) => {
 
       const caption = document.createElement("div");
       caption.className = "hero__slide-caption";
-      caption.innerHTML = `<p>${slide.caption || ""}</p><strong>${
-        slide.title || ""
-      }</strong>`;
+      caption.innerHTML = `<p>${slide.caption || ""}</p><strong>${slide.title || ""
+        }</strong>`;
 
       slideEl.appendChild(imageEl);
       slideEl.appendChild(caption);
@@ -656,25 +655,17 @@ const applyFooter = (footer) => {
   if (!footer) return;
   const logo = document.querySelector(".footer-logo");
   if (logo && footer.logo) logo.src = footer.logo;
-  const footerBlocks = document.querySelectorAll(".site-footer > div");
-  if (footerBlocks.length >= 3) {
-    footerBlocks[0].querySelector("p").textContent = footer.tagline || "";
-    const infoNodes = footerBlocks[1].querySelectorAll("a, p");
-    if (infoNodes[0]) {
-      infoNodes[0].textContent = footer.email || "";
-      if (infoNodes[0].tagName === "A") {
-        infoNodes[0].href = `mailto:${footer.email || ""}`;
-      }
-    }
-    if (infoNodes[1]) {
-      infoNodes[1].textContent = footer.phone || "";
-      if (infoNodes[1].tagName === "A") {
-        infoNodes[1].href = toTelHref(footer.phone || "");
-      }
-    }
-    footerBlocks[2].querySelectorAll("p")[0].textContent = footer.socials || "";
-    footerBlocks[2].querySelectorAll("p")[1].textContent = footer.copyright || "";
+
+  const copyrightEl = document.querySelector(".site-footer__copyright");
+  if (!copyrightEl) return;
+  const value = String(footer.copyright || "").trim();
+  if (!value) {
+    copyrightEl.textContent = "";
+    copyrightEl.style.display = "none";
+    return;
   }
+  copyrightEl.style.display = "";
+  copyrightEl.textContent = value;
 };
 
 const applyMaintenance = (settings) => {
@@ -992,6 +983,238 @@ const initStorageSync = () => {
   });
 };
 
+// =====================================================
+// NEW PROFESSIONAL ANIMATION FUNCTIONS — FOTOLIGHT 2026
+// =====================================================
+
+/** Scroll-progress bar at the top of the page */
+const initScrollProgress = () => {
+  const bar = document.createElement("div");
+  bar.id = "scroll-progress";
+  document.body.prepend(bar);
+  const update = () => {
+    const doc = document.documentElement;
+    const scrolled = doc.scrollTop / (doc.scrollHeight - doc.clientHeight);
+    bar.style.width = `${Math.min(scrolled * 100, 100)}%`;
+  };
+  window.addEventListener("scroll", update, { passive: true });
+};
+
+/** Back-to-top floating button */
+const initBackToTop = () => {
+  const btn = document.createElement("button");
+  btn.id = "back-to-top";
+  btn.innerHTML = "↑";
+  btn.setAttribute("aria-label", "Back to top");
+  document.body.appendChild(btn);
+  window.addEventListener("scroll", () => {
+    btn.classList.toggle("is-visible", window.scrollY > 400);
+  }, { passive: true });
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+};
+
+/** Cursor spotlight — soft blue radial follows pointer */
+const initCursorSpotlight = () => {
+  if (window.matchMedia("(pointer: coarse)").matches) return; // Skip on touch
+  const el = document.createElement("div");
+  el.className = "cursor-spotlight";
+  document.body.appendChild(el);
+  window.addEventListener("mousemove", (e) => {
+    el.style.setProperty("--cx", `${e.clientX}px`);
+    el.style.setProperty("--cy", `${e.clientY}px`);
+  }, { passive: true });
+};
+
+/** 3D tilt effect on service/use-case/testimonial cards */
+const initTiltCards = () => {
+  const cards = document.querySelectorAll(
+    ".service-card, .use-case, .testimonial-card, .stat"
+  );
+  const intensity = 8; // degrees
+  cards.forEach((card) => {
+    card.classList.add("tilt-card");
+    card.addEventListener("mousemove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `
+        translateY(-6px)
+        rotateX(${-y * intensity}deg)
+        rotateY(${x * intensity}deg)
+        scale(1.02)
+      `;
+    });
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "";
+    });
+  });
+};
+
+/** Magnetic pull on buttons — they lean towards cursor */
+const initMagneticButtons = () => {
+  if (window.matchMedia("(pointer: coarse)").matches) return;
+  document.querySelectorAll(".btn").forEach((btn) => {
+    btn.addEventListener("mousemove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const dx = (e.clientX - (rect.left + rect.width / 2)) * 0.25;
+      const dy = (e.clientY - (rect.top + rect.height / 2)) * 0.25;
+      btn.style.transform = `translate(${dx}px, ${dy}px) translateY(-2px)`;
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.transform = "";
+    });
+  });
+};
+
+/** Hero floating particles */
+const initHeroParticles = () => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+  const container = document.createElement("div");
+  container.className = "hero-particles";
+  hero.prepend(container);
+
+  const colors = [
+    "rgba(37, 99, 235, 0.6)",
+    "rgba(20, 184, 166, 0.55)",
+    "rgba(245, 158, 11, 0.5)",
+  ];
+  const count = 18;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "hero-particle";
+    const size = 4 + Math.random() * 10;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const duration = 8 + Math.random() * 14;
+    const delay = -(Math.random() * duration);
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random() * 100}%;
+      top:${70 + Math.random() * 30}%;
+      background:radial-gradient(circle, ${color}, transparent 70%);
+      animation-duration:${duration}s;
+      animation-delay:${delay}s;
+    `;
+    container.appendChild(p);
+  }
+};
+
+/** Animated number counter for stats section */
+const initCounters = () => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const statCards = document.querySelectorAll(".stat h3, .hero__stats h3");
+  const parseValue = (str) => {
+    const match = str.match(/[\d.]+/);
+    return match ? parseFloat(match[0]) : null;
+  };
+  const formatValue = (num, original) => {
+    // Preserve suffix like "+", "hrs", "%", "yrs", "."
+    const numStr = Number.isInteger(num) ? String(num) : num.toFixed(1);
+    return original.replace(/[\d.]+/, numStr);
+  };
+  const animateCounter = (el) => {
+    const original = el.textContent;
+    const target = parseValue(original);
+    if (target === null) return;
+    const start = performance.now();
+    const duration = 1400;
+    const tick = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const current = eased * target;
+      el.textContent = formatValue(current, original);
+      if (progress < 1) requestAnimationFrame(tick);
+      else el.textContent = original;
+    };
+    requestAnimationFrame(tick);
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.5 }
+  );
+  statCards.forEach((el) => observer.observe(el));
+};
+
+/** Enhanced scroll-reveal: also handles data-animate-left/right/scale */
+const initEnhancedAnimations = () => {
+  const selectors = [
+    "[data-animate-left]",
+    "[data-animate-right]",
+    "[data-animate-scale]",
+  ];
+  const all = document.querySelectorAll(selectors.join(","));
+  if (!all.length) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.18 }
+  );
+  all.forEach((el) => observer.observe(el));
+};
+
+/** Eyebrow typing animation on the hero */
+const initTypingEyebrow = () => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const eyebrow = document.querySelector(".hero .eyebrow");
+  if (!eyebrow) return;
+  const text = eyebrow.textContent.trim();
+  eyebrow.textContent = "";
+  eyebrow.style.borderRight = "2px solid var(--accent)";
+  let i = 0;
+  const type = () => {
+    if (i < text.length) {
+      eyebrow.textContent += text[i++];
+      setTimeout(type, 45 + Math.random() * 30);
+    } else {
+      // Remove blinking cursor after done
+      setTimeout(() => { eyebrow.style.borderRight = "none"; }, 800);
+    }
+  };
+  // Delay until page paints
+  setTimeout(type, 400);
+};
+
+/** Nav link active highlighting on scroll */
+const initActiveNavLinks = () => {
+  const sections = document.querySelectorAll("section[id]");
+  const navLinks = document.querySelectorAll(".nav a[href^='#']");
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          navLinks.forEach((link) => {
+            link.classList.toggle(
+              "is-active-nav",
+              link.getAttribute("href") === `#${entry.target.id}`
+            );
+          });
+        }
+      });
+    },
+    { rootMargin: "-40% 0px -55% 0px" }
+  );
+  sections.forEach((s) => observer.observe(s));
+};
+
 const init = () => {
   const data = getData();
   if (data) {
@@ -1003,6 +1226,18 @@ const init = () => {
   initHeroSlider();
   initPortfolioSlider();
   initLazyVideos();
+
+  // ── New professional animations ──
+  initScrollProgress();
+  initBackToTop();
+  initCursorSpotlight();
+  initHeroParticles();
+  initTiltCards();
+  initMagneticButtons();
+  initCounters();
+  initEnhancedAnimations();
+  initTypingEyebrow();
+  initActiveNavLinks();
 };
 
 document.addEventListener("DOMContentLoaded", init);
