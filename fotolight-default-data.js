@@ -253,22 +253,22 @@ window.FOTOLIGHT_DEFAULT_DATA = {
   ],
   "videos": [
     {
-      "src": "video/intro-video.mp4",
+      "src": "https://www.dropbox.com/scl/fi/mjc4il568gp2nv4tfud2v/intro-video.mp4?rlkey=9jwbhebze4f2jwt9bu52mevdf&st=gewd6fc2&dl=0",
       "poster": "video/poster/intro-video.png",
-      "title": "Brand Film — Atelier",
-      "description": "Story-driven launch film with atmospheric lighting."
+      "title": "Wedding Video",
+      "description": "A cinematic wedding film capturing love, emotion, and timeless moments."
     },
     {
-      "src": "video/haldi-video.mp4",
+      "src": "https://www.dropbox.com/scl/fi/rfjirb6m32kr5jbkxmto7/haldi-video.mp4?rlkey=o33wcyzww8gptxtrsn2tbrdn6&st=bg0s9qbo&dl=0",
       "poster": "video/poster/haldi-video.png",
-      "title": "Product Reveal — Nova",
-      "description": "Macro sequences and slow motion for premium detail."
+      "title": "Haldi Video",
+      "description": "A vibrant haldi film filled with color, laughter, and joyful celebration."
     },
     {
-      "src": "video/jai-mala-video.mp4",
+      "src": "https://www.dropbox.com/scl/fi/2fwj9p0nkq6h3htpufwhi/jai-mala-video.mp4?rlkey=z7dnvuvspgbppv43el7ggzjv4&st=83aj3ode&dl=0",
       "poster": "video/poster/jai-mala-video.png",
-      "title": "Event Recap — Echo",
-      "description": "High-energy edit with ambient sound design."
+      "title": "Jai Mala Video",
+      "description": "An elegant jai mala film preserving the warmth and beauty of the ceremony."
     }
   ],
   "stats": [
