@@ -785,7 +785,6 @@ main {
 [data-theme="dark"] .use-case,
 [data-theme="dark"] .use-cases__cta,
 [data-theme="dark"] .portfolio-slide,
-[data-theme="dark"] .photo-tile,
 [data-theme="dark"] .video-card,
 [data-theme="dark"] .testimonial-card,
 [data-theme="dark"] .contact__starter,
@@ -803,7 +802,6 @@ main {
 
 [data-theme="dark"] .use-case:hover,
 [data-theme="dark"] .portfolio-slide:hover,
-[data-theme="dark"] .photo-tile:hover,
 [data-theme="dark"] .video-card:hover,
 [data-theme="dark"] .testimonial-card:hover,
 [data-theme="dark"] .contact__form:focus-within,
@@ -1166,7 +1164,18 @@ main {
   box-shadow: var(--shadow-sm);
   background-size: cover;
   background-position: center;
+  position: relative;
+  overflow: hidden;
   transition: transform var(--duration-base) var(--ease), box-shadow var(--duration-base) var(--ease), filter var(--duration-base) var(--ease);
+}
+
+.photo-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.04), rgba(15, 23, 42, 0.16));
+  pointer-events: none;
+  transition: opacity var(--duration-base) var(--ease), background var(--duration-base) var(--ease);
 }
 
 .photo-tile:hover {
@@ -1175,10 +1184,40 @@ main {
   box-shadow: var(--shadow);
 }
 
+.photo-tile:hover::after {
+  opacity: 0.78;
+}
+
 .photo-tile--one { background-image: url("img/portfolio/img-1.webp"); }
 .photo-tile--two { background-image: url("img/portfolio/img-10.webp"); }
 .photo-tile--three { background-image: url("img/portfolio/img-12.webp"); }
 .photo-tile--four { background-image: url("img/portfolio/img-15.webp"); }
+
+[data-theme="dark"] .photo-tile {
+  background-color: var(--card);
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  filter: saturate(1.04) brightness(0.96) contrast(1.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 18px 44px rgba(2, 6, 23, 0.34);
+}
+
+[data-theme="dark"] .photo-tile::after {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.04), rgba(2, 6, 23, 0.16));
+}
+
+[data-theme="dark"] .photo-tile:hover {
+  filter: saturate(1.08) brightness(1) contrast(1.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 24px 54px rgba(2, 6, 23, 0.42),
+    0 0 0 1px rgba(96, 165, 250, 0.14);
+}
+
+[data-theme="dark"] .photo-tile:hover::after {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.02), rgba(2, 6, 23, 0.08));
+  opacity: 0.65;
+}
 
 .video-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

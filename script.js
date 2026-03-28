@@ -262,6 +262,9 @@ const DEFAULT_DATA = window.FOTOLIGHT_DEFAULT_DATA || {
 };
 
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+const ORIGINAL_PHOTO_SRCS = DEFAULT_DATA.photos.map((item) => item.src);
+const ORIGINAL_PORTFOLIO_SRCS = DEFAULT_DATA.portfolio.map((item) => item.src);
+const arraysEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 const getStoredData = () => {
   try {
@@ -272,6 +275,49 @@ const getStoredData = () => {
     console.warn("Unable to parse stored data", error);
     return null;
   }
+};
+
+const sanitizePhotoItems = (items) => {
+  const incoming = Array.isArray(items) ? items : [];
+  return DEFAULT_DATA.photos.map((fallback, index) => {
+    const candidate = incoming[index];
+    if (
+      candidate &&
+      typeof candidate.src === "string" &&
+      ORIGINAL_PHOTO_SRCS.includes(candidate.src)
+    ) {
+      return {
+        src: candidate.src,
+        alt: candidate.alt || fallback.alt || "",
+      };
+    }
+    return { ...fallback };
+  });
+};
+
+const sanitizePortfolioItems = (items) => {
+  const incoming = Array.isArray(items) ? items : [];
+  const cleaned = incoming
+    .filter(
+      (item) =>
+        item &&
+        typeof item.src === "string" &&
+        ORIGINAL_PORTFOLIO_SRCS.includes(item.src)
+    )
+    .map((item) => ({
+      src: item.src,
+      alt: item.alt || "",
+    }));
+
+  return cleaned.length ? cleaned : deepClone(DEFAULT_DATA.portfolio);
+};
+
+const sanitizeStoredMediaData = (data) => {
+  if (!data || typeof data !== "object") return data;
+  const next = { ...data };
+  next.photos = sanitizePhotoItems(data.photos);
+  next.portfolio = sanitizePortfolioItems(data.portfolio);
+  return next;
 };
 
 const getData = () => {
@@ -285,8 +331,22 @@ const getData = () => {
 
   const stored = getStoredData();
   if (stored) {
-    baseData = { ...baseData, ...stored };
+    const sanitizedStored = sanitizeStoredMediaData(stored);
+    if (
+      !arraysEqual(stored.photos, sanitizedStored.photos) ||
+      !arraysEqual(stored.portfolio, sanitizedStored.portfolio)
+    ) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedStored));
+      } catch (error) {
+        console.warn("Unable to clean stored media data", error);
+      }
+    }
+    baseData = { ...baseData, ...sanitizedStored };
   }
+
+  baseData.photos = sanitizePhotoItems(baseData.photos);
+  baseData.portfolio = sanitizePortfolioItems(baseData.portfolio);
   return baseData;
 };
 
@@ -653,7 +713,7 @@ const applyPhotos = (photos) => {
   if (tiles.length) {
     tiles.forEach((tile, index) => {
       if (photos[index]) {
-        setImageBackground(tile, photos[index].src);
+        setImageBackground(tile, photos[index].src, { eager: true });
       }
     });
   } else {
@@ -661,7 +721,7 @@ const applyPhotos = (photos) => {
     photos.forEach((photo) => {
       const tile = document.createElement("div");
       tile.className = "photo-tile";
-      setImageBackground(tile, photo.src);
+      setImageBackground(tile, photo.src, { eager: true });
       grid.appendChild(tile);
     });
   }

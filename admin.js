@@ -27,6 +27,8 @@ const DEFAULT_PORTFOLIO = (window.FOTOLIGHT_DEFAULT_DATA?.portfolio) || [
   { src: "img/portfolio/img-17.webp", alt: "Evening celebration shot" },
   { src: "img/portfolio/img-18.webp", alt: "Emotive family moment" },
 ];
+const ORIGINAL_PHOTO_SRCS = DEFAULT_PHOTOS.map((item) => item.src);
+const ORIGINAL_PORTFOLIO_SRCS = DEFAULT_PORTFOLIO.map((item) => item.src);
 
 // ── Section meta ─────────────────────────────────────────────────────────────
 const SECTION_META = {
@@ -60,6 +62,42 @@ function loadStoredData() {
   } catch { return null; }
 }
 
+function sanitizePhotos(items) {
+  const incoming = Array.isArray(items) ? items : [];
+  return DEFAULT_PHOTOS.map((fallback, index) => {
+    const candidate = incoming[index];
+    if (
+      candidate &&
+      typeof candidate.src === "string" &&
+      ORIGINAL_PHOTO_SRCS.includes(candidate.src)
+    ) {
+      return { src: candidate.src, alt: candidate.alt || fallback.alt || "" };
+    }
+    return { ...fallback };
+  });
+}
+
+function sanitizePortfolio(items) {
+  const incoming = Array.isArray(items) ? items : [];
+  const cleaned = incoming
+    .filter(
+      (item) =>
+        item &&
+        typeof item.src === "string" &&
+        ORIGINAL_PORTFOLIO_SRCS.includes(item.src)
+    )
+    .map((item) => ({ src: item.src, alt: item.alt || "" }));
+  return cleaned.length ? cleaned : DEFAULT_PORTFOLIO.map((item) => ({ ...item }));
+}
+
+function sanitizeStoredMedia(data) {
+  if (!data || typeof data !== "object") return data;
+  const next = { ...data };
+  next.photos = sanitizePhotos(data.photos);
+  next.portfolio = sanitizePortfolio(data.portfolio);
+  return next;
+}
+
 function loadPhotos() {
   const data = loadStoredData();
   // If localStorage has NEVER been written, use defaults.
@@ -67,7 +105,11 @@ function loadPhotos() {
   if (data === null) {
     return DEFAULT_PHOTOS.map(p => ({ ...p }));
   }
-  return Array.isArray(data.photos) ? data.photos : [];
+  const cleaned = sanitizeStoredMedia(data);
+  if (JSON.stringify(cleaned) !== JSON.stringify(data)) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+  }
+  return cleaned.photos;
 }
 
 function loadPortfolio() {
@@ -76,15 +118,19 @@ function loadPortfolio() {
   if (data === null) {
     return DEFAULT_PORTFOLIO.map(p => ({ ...p }));
   }
-  return Array.isArray(data.portfolio) ? data.portfolio : [];
+  const cleaned = sanitizeStoredMedia(data);
+  if (JSON.stringify(cleaned) !== JSON.stringify(data)) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+  }
+  return cleaned.portfolio;
 }
 
 function saveCurrent() {
   try {
     // Always read existing data first so we don't wipe other keys (videos, stats, etc.)
     const existing = loadStoredData() || {};
-    existing.photos    = state.photos;
-    existing.portfolio = state.portfolio;
+    existing.photos    = sanitizePhotos(state.photos);
+    existing.portfolio = sanitizePortfolio(state.portfolio);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
   } catch (e) {
     console.warn("Save failed", e);
@@ -239,11 +285,8 @@ function renderGalleryGrid(items, dataKey, addLabel, sectionHint) {
       const file = input.files?.[0];
       if (!file) return;
       try {
-        const dataUrl = await resizeImage(file, 1200);
-        getList(dataKey)[idx].src = dataUrl;
-        setDirty(true);
-        renderSection();
-        showToast("Image uploaded ✓");
+        await resizeImage(file, 1200);
+        showToast("Custom uploads are disabled here. Only original project images are allowed.");
       } catch {
         showToast("Upload failed — try a different image.");
       }
