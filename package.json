@@ -1,0 +1,17 @@
+{
+  "name": "fotolight-media-studio",
+  "version": "1.0.0",
+  "description": "Premium photo studio website for Fotolight Media Production",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -s .",
+    "dev": "npx http-server ."
+  },
+  "keywords": [
+    "photography",
+    "studio",
+    "portfolio"
+  ],
+  "author": "Pravin Pandit",
+  "license": "ISC"
+}
