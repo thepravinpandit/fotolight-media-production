@@ -184,22 +184,22 @@ const DEFAULT_DATA = window.FOTOLIGHT_DEFAULT_DATA || {
   ],
   videos: [
     {
-      src: "video/intro-video.mp4",
+      src: "https://www.dropbox.com/scl/fi/mjc4il568gp2nv4tfud2v/intro-video.mp4?rlkey=9jwbhebze4f2jwt9bu52mevdf&st=gewd6fc2&dl=0",
       poster: "video/poster/intro-video.png",
-      title: "Brand Film — Atelier",
-      description: "Story-driven launch film with atmospheric lighting.",
+      title: "Wedding Video",
+      description: "A cinematic wedding film capturing love, emotion, and timeless moments.",
     },
     {
-      src: "video/haldi-video.mp4",
+      src: "https://www.dropbox.com/scl/fi/rfjirb6m32kr5jbkxmto7/haldi-video.mp4?rlkey=o33wcyzww8gptxtrsn2tbrdn6&st=bg0s9qbo&dl=0",
       poster: "video/poster/haldi-video.png",
-      title: "Product Reveal — Nova",
-      description: "Macro sequences and slow motion for premium detail.",
+      title: "Haldi Video",
+      description: "A vibrant haldi film filled with color, laughter, and joyful celebration.",
     },
     {
-      src: "video/jai-mala-video.mp4",
+      src: "https://www.dropbox.com/scl/fi/2fwj9p0nkq6h3htpufwhi/jai-mala-video.mp4?rlkey=z7dnvuvspgbppv43el7ggzjv4&st=83aj3ode&dl=0",
       poster: "video/poster/jai-mala-video.png",
-      title: "Event Recap — Echo",
-      description: "High-energy edit with ambient sound design.",
+      title: "Jai Mala Video",
+      description: "An elegant jai mala film preserving the warmth and beauty of the ceremony.",
     },
   ],
   stats: [
@@ -275,15 +275,19 @@ const getStoredData = () => {
 };
 
 const getData = () => {
-  const stored = getStoredData();
-  if (stored) return stored;
+  let baseData = deepClone(DEFAULT_DATA);
   if (
     window.FOTOLIGHT_BOOT_DATA &&
     typeof window.FOTOLIGHT_BOOT_DATA === "object"
   ) {
-    return deepClone(window.FOTOLIGHT_BOOT_DATA);
+    baseData = { ...baseData, ...deepClone(window.FOTOLIGHT_BOOT_DATA) };
   }
-  return deepClone(DEFAULT_DATA);
+
+  const stored = getStoredData();
+  if (stored) {
+    baseData = { ...baseData, ...stored };
+  }
+  return baseData;
 };
 
 const setText = (el, value) => {
@@ -300,9 +304,163 @@ const toTelHref = (value) => {
   return `tel:${normalized}`;
 };
 
-const setImageBackground = (el, src) => {
+const normalizeVideoSrc = (src) => {
+  const value = String(src || "").trim();
+  if (!value) return "";
+
+  // Dropbox share links are not directly streamable in <video>.
+  // Convert them to "raw" links that usually work for MP4 playback.
+  if (/dropbox\.com/i.test(value)) {
+    try {
+      const url = new URL(value);
+      // Common formats:
+      // - https://www.dropbox.com/s/<id>/file.mp4?dl=0
+      // - https://www.dropbox.com/scl/fi/<id>/file.mp4?rlkey=...&dl=0
+      // - https://dl.dropboxusercontent.com/... (already direct)
+      if (/^www\.dropbox\.com$/i.test(url.hostname)) {
+        url.hostname = "dl.dropboxusercontent.com";
+      }
+      // Force a direct response
+      url.searchParams.delete("dl");
+      url.searchParams.set("raw", "1");
+      return url.toString();
+    } catch {
+      // Fallback: best-effort string replace
+      return value
+        .replace("www.dropbox.com", "dl.dropboxusercontent.com")
+        .replace(/[?&]dl=\d+/i, "")
+        .replace(/\?$/, "") + (value.includes("?") ? "&raw=1" : "?raw=1");
+    }
+  }
+
+  return value;
+};
+
+const scheduleIdle = (callback) => {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(callback, { timeout: 1200 });
+    return;
+  }
+  window.setTimeout(callback, 180);
+};
+
+const applyBackgroundImage = (el) => {
+  if (!el || !el.dataset.bg) return;
+  el.style.backgroundImage = `url('${el.dataset.bg}')`;
+  el.dataset.bgLoaded = "true";
+};
+
+const showSiteToast = (message) => {
+  let container = document.querySelector(".site-toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "site-toast-container";
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = "site-toast";
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("is-visible"));
+
+  window.setTimeout(() => {
+    toast.classList.remove("is-visible");
+    window.setTimeout(() => toast.remove(), 260);
+  }, 2200);
+};
+
+const markImageLoaded = (img) => {
+  const slide = img?.closest(".portfolio-slide");
+  if (!slide) return;
+  slide.classList.remove("is-loading");
+  slide.classList.add("is-loaded");
+};
+
+const bindPortfolioImageState = (img) => {
+  const slide = img?.closest(".portfolio-slide");
+  if (!img || !slide) return;
+  slide.classList.add("is-loading");
+
+  if (img.complete && img.naturalWidth > 0) {
+    markImageLoaded(img);
+  } else {
+    img.addEventListener("load", () => markImageLoaded(img), { once: true });
+    img.addEventListener("error", () => slide.classList.remove("is-loading"), {
+      once: true,
+    });
+  }
+
+  slide.addEventListener("click", () => {
+    if (!slide.classList.contains("is-loaded")) {
+      showSiteToast("Portfolio image is loading, please wait...");
+    }
+  });
+};
+
+const bindVideoState = (video) => {
+  const thumb = video?.closest(".video-card__thumb");
+  if (!video || !thumb) return;
+
+  const finishLoading = () => {
+    thumb.classList.remove("is-loading");
+    thumb.classList.add("is-loaded");
+    if (video.dataset.autoplayRequested === "true") {
+      video.dataset.autoplayRequested = "false";
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {});
+      }
+    }
+  };
+
+  if (video.readyState >= 2 && !video.dataset.src) {
+    finishLoading();
+  } else {
+    thumb.classList.add("is-loading");
+    video.addEventListener("canplay", finishLoading, { once: true });
+    video.addEventListener(
+      "error",
+      () => {
+        thumb.classList.remove("is-loading");
+      },
+      { once: true }
+    );
+  }
+
+  thumb.addEventListener("click", () => {
+    const needsLoad = Boolean(video.dataset.src) || video.readyState < 2;
+    if (needsLoad) {
+      showSiteToast("Video is loading, it will play in a moment...");
+      video.dataset.autoplayRequested = "true";
+      if (video.dataset.src) {
+        loadVideoSource(video);
+      }
+      return;
+    }
+
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
+    }
+  });
+};
+
+const loadVideoSource = (video) => {
+  if (!video || !video.dataset.src) return;
+  video.src = normalizeVideoSrc(video.dataset.src);
+  video.removeAttribute("data-src");
+  video.load();
+};
+
+const setImageBackground = (el, src, options = {}) => {
   if (!el || !src) return;
-  el.style.backgroundImage = `url('${src}')`;
+  const { eager = false } = options;
+  el.dataset.bg = src;
+  if (eager) {
+    applyBackgroundImage(el);
+  }
 };
 
 const applyHero = (hero) => {
@@ -359,7 +517,7 @@ const applyHero = (hero) => {
       imageEl.className = "hero__slide-image";
       imageEl.setAttribute("role", "img");
       imageEl.setAttribute("aria-label", slide.title || "Hero slide");
-      setImageBackground(imageEl, slide.image);
+      setImageBackground(imageEl, slide.image, { eager: index === 0 });
 
       const caption = document.createElement("div");
       caption.className = "hero__slide-caption";
@@ -476,13 +634,14 @@ const applyPortfolio = (items) => {
   track.innerHTML = "";
   items.forEach((item) => {
     const slide = document.createElement("article");
-    slide.className = "portfolio-slide";
+    slide.className = "portfolio-slide is-loading";
     const img = document.createElement("img");
     img.src = item.src;
     img.alt = item.alt || "Portfolio image";
     img.loading = "lazy";
     img.decoding = "async";
     slide.appendChild(img);
+    bindPortfolioImageState(img);
     track.appendChild(slide);
   });
 };
@@ -515,20 +674,44 @@ const applyVideos = (videos) => {
   videos.forEach((video) => {
     const card = document.createElement("article");
     card.className = "video-card";
+
+    const rawSrc = String(video.src || "");
+    const isDrive = rawSrc.includes("drive.google.com");
+    let mediaHtml = "";
+    if (isDrive) {
+      let driveSrc = rawSrc.replace("/view", "/preview");
+      mediaHtml = `
+          <iframe
+            src="${driveSrc}"
+            allow="autoplay"
+            class="video-preview"
+            style="width: 100%; height: 100%; border: none; aspect-ratio: 16/9; display: block;"
+          ></iframe>
+        `;
+    } else {
+      const playableSrc = normalizeVideoSrc(rawSrc);
+      mediaHtml = `
+          <video
+            data-src="${playableSrc}"
+            poster="${video.poster || ""}"
+            controls
+            preload="none"
+            playsinline
+          ></video>
+        `;
+    }
+
     card.innerHTML = `
-      <div class="video-card__thumb">
-        <video
-          data-src="${video.src || ""}"
-          poster="${video.poster || ""}"
-          controls
-          preload="none"
-          playsinline
-        ></video>
+      <div class="video-card__thumb is-loading">
+        ${mediaHtml}
       </div>
       <h3>${video.title || ""}</h3>
       <p>${video.description || ""}</p>
     `;
     grid.appendChild(card);
+
+    const videoEl = card.querySelector("video");
+    if (videoEl) bindVideoState(videoEl);
   });
 };
 
@@ -832,19 +1015,12 @@ const initLazyVideos = () => {
   const lazyVideos = document.querySelectorAll("video[data-src]");
   if (!lazyVideos.length) return;
 
-  const loadVideo = (video) => {
-    if (!video.dataset.src) return;
-    video.src = video.dataset.src;
-    video.removeAttribute("data-src");
-    video.load();
-  };
-
   if ("IntersectionObserver" in window) {
     const videoObserver = new IntersectionObserver(
       (entries, observerInstance) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            loadVideo(entry.target);
+            loadVideoSource(entry.target);
             observerInstance.unobserve(entry.target);
           }
         });
@@ -854,7 +1030,53 @@ const initLazyVideos = () => {
 
     lazyVideos.forEach((video) => videoObserver.observe(video));
   } else {
-    lazyVideos.forEach((video) => loadVideo(video));
+    lazyVideos.forEach((video) => loadVideoSource(video));
+  }
+};
+
+const initLazyBackgrounds = () => {
+  const lazyBackgrounds = Array.from(
+    document.querySelectorAll("[data-bg]:not([data-bg-loaded='true'])")
+  );
+  if (!lazyBackgrounds.length) return;
+
+  const loadBackground = (element) => {
+    applyBackgroundImage(element);
+    element.removeAttribute("data-bg");
+  };
+
+  const heroDeferred = document.querySelectorAll(
+    ".hero__slide-image[data-bg]:not([data-bg-loaded='true'])"
+  );
+  if (heroDeferred.length) {
+    scheduleIdle(() => {
+      heroDeferred.forEach((element) => loadBackground(element));
+    });
+  }
+
+  const remaining = lazyBackgrounds.filter(
+    (element) => !element.closest(".hero__slide")
+  );
+  if (!remaining.length) return;
+
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries, observerInstance) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadBackground(entry.target);
+            observerInstance.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.01, rootMargin: "240px 0px" }
+    );
+
+    remaining.forEach((element) => observer.observe(element));
+  } else {
+    scheduleIdle(() => {
+      remaining.forEach((element) => loadBackground(element));
+    });
   }
 };
 
@@ -984,7 +1206,7 @@ const initStorageSync = () => {
 };
 
 // =====================================================
-// NEW PROFESSIONAL ANIMATION FUNCTIONS — FOTOLIGHT 2026
+// PREMIUM EDITORIAL ANIMATIONS — FOTOLIGHT 2026
 // =====================================================
 
 /** Scroll-progress bar at the top of the page */
@@ -1015,137 +1237,7 @@ const initBackToTop = () => {
   });
 };
 
-/** Cursor spotlight — soft blue radial follows pointer */
-const initCursorSpotlight = () => {
-  if (window.matchMedia("(pointer: coarse)").matches) return; // Skip on touch
-  const el = document.createElement("div");
-  el.className = "cursor-spotlight";
-  document.body.appendChild(el);
-  window.addEventListener("mousemove", (e) => {
-    el.style.setProperty("--cx", `${e.clientX}px`);
-    el.style.setProperty("--cy", `${e.clientY}px`);
-  }, { passive: true });
-};
-
-/** 3D tilt effect on service/use-case/testimonial cards */
-const initTiltCards = () => {
-  const cards = document.querySelectorAll(
-    ".service-card, .use-case, .testimonial-card, .stat"
-  );
-  const intensity = 8; // degrees
-  cards.forEach((card) => {
-    card.classList.add("tilt-card");
-    card.addEventListener("mousemove", (e) => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `
-        translateY(-6px)
-        rotateX(${-y * intensity}deg)
-        rotateY(${x * intensity}deg)
-        scale(1.02)
-      `;
-    });
-    card.addEventListener("mouseleave", () => {
-      card.style.transform = "";
-    });
-  });
-};
-
-/** Magnetic pull on buttons — they lean towards cursor */
-const initMagneticButtons = () => {
-  if (window.matchMedia("(pointer: coarse)").matches) return;
-  document.querySelectorAll(".btn").forEach((btn) => {
-    btn.addEventListener("mousemove", (e) => {
-      const rect = btn.getBoundingClientRect();
-      const dx = (e.clientX - (rect.left + rect.width / 2)) * 0.25;
-      const dy = (e.clientY - (rect.top + rect.height / 2)) * 0.25;
-      btn.style.transform = `translate(${dx}px, ${dy}px) translateY(-2px)`;
-    });
-    btn.addEventListener("mouseleave", () => {
-      btn.style.transform = "";
-    });
-  });
-};
-
-/** Hero floating particles */
-const initHeroParticles = () => {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const hero = document.querySelector(".hero");
-  if (!hero) return;
-  const container = document.createElement("div");
-  container.className = "hero-particles";
-  hero.prepend(container);
-
-  const colors = [
-    "rgba(37, 99, 235, 0.6)",
-    "rgba(20, 184, 166, 0.55)",
-    "rgba(245, 158, 11, 0.5)",
-  ];
-  const count = 18;
-  for (let i = 0; i < count; i++) {
-    const p = document.createElement("div");
-    p.className = "hero-particle";
-    const size = 4 + Math.random() * 10;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const duration = 8 + Math.random() * 14;
-    const delay = -(Math.random() * duration);
-    p.style.cssText = `
-      width:${size}px; height:${size}px;
-      left:${Math.random() * 100}%;
-      top:${70 + Math.random() * 30}%;
-      background:radial-gradient(circle, ${color}, transparent 70%);
-      animation-duration:${duration}s;
-      animation-delay:${delay}s;
-    `;
-    container.appendChild(p);
-  }
-};
-
-/** Animated number counter for stats section */
-const initCounters = () => {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const statCards = document.querySelectorAll(".stat h3, .hero__stats h3");
-  const parseValue = (str) => {
-    const match = str.match(/[\d.]+/);
-    return match ? parseFloat(match[0]) : null;
-  };
-  const formatValue = (num, original) => {
-    // Preserve suffix like "+", "hrs", "%", "yrs", "."
-    const numStr = Number.isInteger(num) ? String(num) : num.toFixed(1);
-    return original.replace(/[\d.]+/, numStr);
-  };
-  const animateCounter = (el) => {
-    const original = el.textContent;
-    const target = parseValue(original);
-    if (target === null) return;
-    const start = performance.now();
-    const duration = 1400;
-    const tick = (now) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-      const current = eased * target;
-      el.textContent = formatValue(current, original);
-      if (progress < 1) requestAnimationFrame(tick);
-      else el.textContent = original;
-    };
-    requestAnimationFrame(tick);
-  };
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          animateCounter(entry.target);
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.5 }
-  );
-  statCards.forEach((el) => observer.observe(el));
-};
+// Removed gaudy particle and counter animations.
 
 /** Enhanced scroll-reveal: also handles data-animate-left/right/scale */
 const initEnhancedAnimations = () => {
@@ -1215,6 +1307,48 @@ const initActiveNavLinks = () => {
   sections.forEach((s) => observer.observe(s));
 };
 
+/** Theme toggle functionality */
+const initThemeToggle = () => {
+  const toggleBtn = document.getElementById("theme-toggle");
+  if (!toggleBtn) return;
+
+  const currentTheme = localStorage.getItem("fotolightTheme");
+  if (currentTheme) {
+    document.documentElement.setAttribute("data-theme", currentTheme);
+    toggleBtn.textContent = currentTheme === "dark" ? "☀️" : "🌙";
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const newTheme = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("fotolightTheme", newTheme);
+    toggleBtn.textContent = newTheme === "dark" ? "☀️" : "🌙";
+  });
+};
+
+/** Cinematic Photo Studio Effects: Parallax and Camera UI */
+const initCinematicStudioEffects = () => {
+  // 1. Camera flash effect on slider interaction
+  const triggerFlash = () => {
+    const flash = document.createElement("div");
+    flash.className = "camera-flash";
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 600);
+  };
+
+  const sliderTriggers = document.querySelectorAll(".hero__dot, .portfolio-slider__btn");
+  sliderTriggers.forEach(btn => btn.addEventListener("click", triggerFlash));
+
+  // 2. Apply Viewfinder frames to portfolio imagery
+  const portSlides = document.querySelectorAll(".portfolio-slide");
+  portSlides.forEach(slide => slide.classList.add("viewfinder"));
+
+  // 3. Glow Highlight on Testimonial cards
+  const cards = document.querySelectorAll(".testimonial-card");
+  cards.forEach(card => card.classList.add("glow-highlight"));
+};
+
 const init = () => {
   const data = getData();
   if (data) {
@@ -1222,22 +1356,24 @@ const init = () => {
   }
   initStorageSync();
   initNavMenu();
-  initAnimations();
   initHeroSlider();
-  initPortfolioSlider();
-  initLazyVideos();
+  initThemeToggle();
+  initLazyBackgrounds();
 
-  // ── New professional animations ──
-  initScrollProgress();
-  initBackToTop();
-  initCursorSpotlight();
-  initHeroParticles();
-  initTiltCards();
-  initMagneticButtons();
-  initCounters();
-  initEnhancedAnimations();
-  initTypingEyebrow();
-  initActiveNavLinks();
+  window.requestAnimationFrame(() => {
+    initAnimations();
+    initActiveNavLinks();
+    initScrollProgress();
+    initBackToTop();
+  });
+
+  scheduleIdle(() => {
+    initPortfolioSlider();
+    initLazyVideos();
+    initEnhancedAnimations();
+    initTypingEyebrow();
+    initCinematicStudioEffects();
+  });
 };
 
 document.addEventListener("DOMContentLoaded", init);
