@@ -440,7 +440,7 @@ window.addEventListener("keydown", (event) => {
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 previewButton.addEventListener("click", () => {
-  window.open("index.html", "_blank");
+  window.open("/index.html", "_blank");
 });
 
 // ── Logout ────────────────────────────────────────────────────────────────────

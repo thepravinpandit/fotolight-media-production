@@ -4,7 +4,7 @@
   "description": "Premium photo studio website for Fotolight Media Production",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve -s .",
+    "start": "npx serve .",
     "dev": "npx http-server ."
   },
   "keywords": [
