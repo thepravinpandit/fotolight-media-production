@@ -664,6 +664,8 @@ select {
   gap: 1rem;
   position: relative;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 480px;
   transition:
     transform var(--duration-base) var(--ease),
     box-shadow var(--duration-base) var(--ease),
@@ -884,6 +886,8 @@ select {
   padding: 0.8rem;
   display: grid;
   gap: 0.6rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 260px;
   transition:
     transform var(--duration-base) var(--ease),
     box-shadow var(--duration-base) var(--ease),
