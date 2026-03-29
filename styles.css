@@ -16,6 +16,7 @@
   
   --card: #ffffff;
   --glass: rgba(255, 255, 255, 0.85);
+  --glass-blur: 8px;
   --border: rgba(59, 130, 246, 0.15);
   --border-soft: rgba(59, 130, 246, 0.08);
   --header-bg: rgba(255, 255, 255, 0.85);
@@ -62,6 +63,7 @@
   
   --card: #141423;
   --glass: rgba(20, 20, 35, 0.85);
+  --glass-blur: 6px;
   --border: rgba(96, 165, 250, 0.2);
   --border-soft: rgba(96, 165, 250, 0.1);
   --header-bg: rgba(9, 9, 18, 0.85);
@@ -221,7 +223,7 @@ a {
   top: 0;
   z-index: 10;
   background: var(--header-bg);
-  backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(125%);
   border-bottom: 1px solid var(--border);
 }
 
@@ -451,7 +453,6 @@ main {
 
 .highlight {
   background: var(--glass);
-  backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   border-radius: 999px;
@@ -586,15 +587,12 @@ main {
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: saturate(1.05) brightness(0.9);
-  transform: scale(1.08); /* Initial zoom state */
-  will-change: transform, filter;
-  transition: filter 1.6s var(--ease), transform 2.8s var(--ease-out);
+  transform: scale(1.04);
+  transition: transform 2.2s var(--ease-out);
 }
 
 .hero__slide.is-active .hero__slide-image {
-  filter: saturate(1) brightness(1);
-  transform: scale(1); /* Settle perfectly into the box */
+  transform: scale(1);
 }
 
 .hero__slide-image::after {
@@ -630,7 +628,7 @@ main {
   right: 1.4rem;
   bottom: 2.8rem;
   background: var(--glass);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--glass-blur));
   border-radius: var(--radius);
   padding: 1rem 1.4rem;
   box-shadow: var(--shadow-sm);
@@ -1026,7 +1024,6 @@ main {
   display: flex;
   gap: var(--slide-gap);
   transition: transform 0.7s var(--ease);
-  will-change: transform;
 }
 
 .portfolio-slide {
@@ -1513,6 +1510,17 @@ textarea:focus {
   display: block;
 }
 
+.section,
+.portfolio,
+.photos,
+.videos,
+.testimonials,
+.contact,
+.site-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 720px;
+}
+
 .site-footer__row {
   position: relative;
   display: flex;
@@ -1927,7 +1935,7 @@ textarea:focus {
   color: #f8fafc;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--glass-blur));
   text-align: center;
   font-size: 0.92rem;
   opacity: 0;
@@ -2095,7 +2103,7 @@ textarea:focus {
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
       0 22px 48px rgba(2, 6, 23, 0.55);
-    backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(125%);
   }
 
   .site-header__menu.is-open {
@@ -2233,6 +2241,24 @@ textarea:focus {
 
   .ticker__track {
     gap: 2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  :root,
+  [data-theme="dark"] {
+    --glass-blur: 0px;
+  }
+
+  .site-header,
+  .hero__slide-caption,
+  .site-toast,
+  [data-theme="dark"] .site-header__menu {
+    backdrop-filter: none;
+  }
+
+  .hero__slide-image {
+    transition: transform 1.2s var(--ease-out);
   }
 }
 

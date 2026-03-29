@@ -179,6 +179,18 @@ function showToast(message) {
   setTimeout(() => toast.remove(), 3000);
 }
 
+function createRafThrottle(callback) {
+  let scheduled = false;
+  return () => {
+    if (scheduled) return;
+    scheduled = true;
+    window.requestAnimationFrame(() => {
+      scheduled = false;
+      callback();
+    });
+  };
+}
+
 function confirmDialog(title, message) {
   return new Promise((resolve) => {
     confirmTitle.textContent   = title;
@@ -506,11 +518,13 @@ function migrateStoredData() {
 (function () {
   const bar = document.getElementById("admin-scroll-progress");
   if (!bar) return;
+  const el = document.querySelector(".main") || document.documentElement;
   const update = () => {
-    const el = document.querySelector(".main") || document.documentElement;
     const scrollable = el.scrollHeight - el.clientHeight;
     bar.style.width = scrollable <= 0 ? "0%" : Math.min(100, (el.scrollTop / scrollable) * 100) + "%";
   };
-  (document.querySelector(".main") || window).addEventListener("scroll", update, { passive: true });
-  window.addEventListener("resize", update, { passive: true });
+  const onScroll = createRafThrottle(update);
+  el.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  update();
 })();

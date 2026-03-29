@@ -404,6 +404,18 @@ const scheduleIdle = (callback) => {
   window.setTimeout(callback, 180);
 };
 
+const createRafThrottle = (callback) => {
+  let scheduled = false;
+  return () => {
+    if (scheduled) return;
+    scheduled = true;
+    window.requestAnimationFrame(() => {
+      scheduled = false;
+      callback();
+    });
+  };
+};
+
 const applyBackgroundImage = (el) => {
   if (!el || !el.dataset.bg) return;
   el.style.backgroundImage = `url('${el.dataset.bg}')`;
@@ -1276,10 +1288,13 @@ const initScrollProgress = () => {
   document.body.prepend(bar);
   const update = () => {
     const doc = document.documentElement;
-    const scrolled = doc.scrollTop / (doc.scrollHeight - doc.clientHeight);
+    const scrollable = doc.scrollHeight - doc.clientHeight;
+    const scrolled = scrollable > 0 ? doc.scrollTop / scrollable : 0;
     bar.style.width = `${Math.min(scrolled * 100, 100)}%`;
   };
-  window.addEventListener("scroll", update, { passive: true });
+  const onScroll = createRafThrottle(update);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  update();
 };
 
 /** Back-to-top floating button */
@@ -1289,9 +1304,11 @@ const initBackToTop = () => {
   btn.innerHTML = "↑";
   btn.setAttribute("aria-label", "Back to top");
   document.body.appendChild(btn);
-  window.addEventListener("scroll", () => {
+  const updateVisibility = createRafThrottle(() => {
     btn.classList.toggle("is-visible", window.scrollY > 400);
-  }, { passive: true });
+  });
+  window.addEventListener("scroll", updateVisibility, { passive: true });
+  updateVisibility();
   btn.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
