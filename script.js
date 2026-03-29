@@ -265,6 +265,8 @@ const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const ORIGINAL_PHOTO_SRCS = DEFAULT_DATA.photos.map((item) => item.src);
 const ORIGINAL_PORTFOLIO_SRCS = DEFAULT_DATA.portfolio.map((item) => item.src);
 const arraysEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const isUploadedImageSrc = (value) =>
+  typeof value === "string" && value.startsWith("data:image/");
 
 const getStoredData = () => {
   try {
@@ -302,7 +304,8 @@ const sanitizePortfolioItems = (items) => {
       (item) =>
         item &&
         typeof item.src === "string" &&
-        ORIGINAL_PORTFOLIO_SRCS.includes(item.src)
+        (ORIGINAL_PORTFOLIO_SRCS.includes(item.src) ||
+          isUploadedImageSrc(item.src))
     )
     .map((item) => ({
       src: item.src,

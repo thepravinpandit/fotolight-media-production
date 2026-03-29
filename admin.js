@@ -30,6 +30,10 @@ const DEFAULT_PORTFOLIO = (window.FOTOLIGHT_DEFAULT_DATA?.portfolio) || [
 const ORIGINAL_PHOTO_SRCS = DEFAULT_PHOTOS.map((item) => item.src);
 const ORIGINAL_PORTFOLIO_SRCS = DEFAULT_PORTFOLIO.map((item) => item.src);
 
+function isUploadedImageSrc(value) {
+  return typeof value === "string" && value.startsWith("data:image/");
+}
+
 // ── Section meta ─────────────────────────────────────────────────────────────
 const SECTION_META = {
   photos: {
@@ -84,7 +88,7 @@ function sanitizePortfolio(items) {
       (item) =>
         item &&
         typeof item.src === "string" &&
-        ORIGINAL_PORTFOLIO_SRCS.includes(item.src)
+        (ORIGINAL_PORTFOLIO_SRCS.includes(item.src) || isUploadedImageSrc(item.src))
     )
     .map((item) => ({ src: item.src, alt: item.alt || "" }));
   return cleaned.length ? cleaned : DEFAULT_PORTFOLIO.map((item) => ({ ...item }));
@@ -211,7 +215,7 @@ function confirmDialog(title, message) {
 }
 
 // ── Image resize helper ───────────────────────────────────────────────────────
-function resizeImage(file, maxWidth = 1200) {
+function resizeImage(file, maxWidth = 1280, quality = 0.82) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -221,8 +225,13 @@ function resizeImage(file, maxWidth = 1200) {
         const canvas = document.createElement("canvas");
         canvas.width  = img.width  * scale;
         canvas.height = img.height * scale;
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.88));
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("Canvas is not available"));
+          return;
+        }
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/webp", quality));
       };
       img.onerror = reject;
       img.src = reader.result;
@@ -297,10 +306,23 @@ function renderGalleryGrid(items, dataKey, addLabel, sectionHint) {
       const file = input.files?.[0];
       if (!file) return;
       try {
-        await resizeImage(file, 1200);
-        showToast("Custom uploads are disabled here. Only original project images are allowed.");
+        if (dataKey !== "portfolio") {
+          showToast("Photo tile uploads are locked to original project images.");
+          input.value = "";
+          return;
+        }
+        const resized = await resizeImage(file, 1280, 0.8);
+        getList(dataKey)[idx].src = resized;
+        if (!getList(dataKey)[idx].alt) {
+          getList(dataKey)[idx].alt = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+        }
+        setDirty(true);
+        renderSection();
+        showToast("Portfolio image uploaded.");
       } catch {
         showToast("Upload failed — try a different image.");
+      } finally {
+        input.value = "";
       }
     });
   });
@@ -476,16 +498,18 @@ function migrateStoredData() {
   if (!data) return;
 
   let changed = false;
-  ["portfolio", "photos"].forEach((key) => {
-    if (!Array.isArray(data[key])) return;
-    const clean = data[key].filter(
-      (item) => item && typeof item.src === "string" && !item.src.startsWith("data:")
+  if (Array.isArray(data.photos)) {
+    const cleanPhotos = data.photos.filter(
+      (item) =>
+        item &&
+        typeof item.src === "string" &&
+        !item.src.startsWith("data:")
     );
-    if (clean.length !== data[key].length) {
-      data[key] = clean;
+    if (cleanPhotos.length !== data.photos.length) {
+      data.photos = cleanPhotos;
       changed = true;
     }
-  });
+  }
 
   if (changed) {
     try {
