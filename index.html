@@ -324,11 +324,22 @@
           clean styling and dimensional lighting.
         </p>
       </div>
-      <div class="grid photo-grid" data-animate data-stagger="children">
-        <div class="photo-tile photo-tile--one"></div>
-        <div class="photo-tile photo-tile--two"></div>
-        <div class="photo-tile photo-tile--three"></div>
-        <div class="photo-tile photo-tile--four"></div>
+      <div class="photo-slider" data-animate data-photo-slider>
+        <div class="photo-grid">
+          <div class="photo-tile photo-tile--one"></div>
+          <div class="photo-tile photo-tile--two"></div>
+          <div class="photo-tile photo-tile--three"></div>
+          <div class="photo-tile photo-tile--four"></div>
+        </div>
+        <div class="portfolio-slider__controls">
+          <button class="portfolio-slider__btn photo-slider__btn--prev" aria-label="Previous photo slide">
+            ‹
+          </button>
+          <div class="portfolio-slider__dots photo-slider__dots" aria-label="Photo slider pagination"></div>
+          <button class="portfolio-slider__btn photo-slider__btn--next" aria-label="Next photo slide">
+            ›
+          </button>
+        </div>
       </div>
     </section>
 

@@ -744,22 +744,18 @@ const applyPortfolio = (items) => {
 const applyPhotos = (photos) => {
   const grid = document.querySelector(".photo-grid");
   if (!grid || !Array.isArray(photos)) return;
-  const tiles = grid.querySelectorAll(".photo-tile");
-  if (tiles.length) {
-    tiles.forEach((tile, index) => {
-      if (photos[index]) {
-        setImageBackground(tile, photos[index].src, { eager: true });
-      }
-    });
-  } else {
-    grid.innerHTML = "";
-    photos.forEach((photo) => {
-      const tile = document.createElement("div");
-      tile.className = "photo-tile";
-      setImageBackground(tile, photo.src, { eager: true });
-      grid.appendChild(tile);
-    });
-  }
+  grid.innerHTML = "";
+  photos.forEach((photo) => {
+    const tile = document.createElement("div");
+    tile.className = "photo-tile";
+    setImageBackground(tile, photo.src, { eager: true });
+    grid.appendChild(tile);
+  });
+
+  const photoSlider = document.querySelector("[data-photo-slider]");
+  const dotsContainer = photoSlider?.querySelector(".photo-slider__dots");
+  if (grid) grid.style.transform = "translateX(0)";
+  if (dotsContainer) dotsContainer.innerHTML = "";
 };
 
 const applyVideos = (videos) => {
@@ -1318,6 +1314,123 @@ const initPortfolioSlider = () => {
   startAuto();
 };
 
+const initPhotoSlider = () => {
+  const photoSlider = document.querySelector("[data-photo-slider]");
+  if (!photoSlider) return;
+  const track = photoSlider.querySelector(".photo-grid");
+  const slides = Array.from(track.children);
+  if (!slides.length) return;
+  const prevBtn = photoSlider.querySelector(".photo-slider__btn--prev");
+  const nextBtn = photoSlider.querySelector(".photo-slider__btn--next");
+  const dotsContainer = photoSlider.querySelector(".photo-slider__dots");
+
+  let index = 0;
+  let autoId = null;
+  let currentDotCount = 0;
+
+  const getSlidesPerView = () => {
+    const value = window
+      .getComputedStyle(photoSlider)
+      .getPropertyValue("--slides-per-view");
+    return Number.parseInt(value, 10) || 4;
+  };
+
+  const getGap = () => {
+    const gap = window.getComputedStyle(track).gap;
+    return Number.parseFloat(gap) || 0;
+  };
+
+  const updateDots = (slidesPerView) => {
+    const maxIndex = Math.max(0, slides.length - slidesPerView);
+    const needed = maxIndex + 1;
+    if (needed !== currentDotCount) {
+      dotsContainer.innerHTML = "";
+      for (let i = 0; i < needed; i += 1) {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "portfolio-slider__dot";
+        dot.setAttribute("aria-label", `Go to photo slide ${i + 1}`);
+        dot.addEventListener("click", () => {
+          index = i;
+          update();
+          restartAuto();
+        });
+        dotsContainer.appendChild(dot);
+      }
+      currentDotCount = needed;
+    }
+
+    const dots = dotsContainer.querySelectorAll(".portfolio-slider__dot");
+    dots.forEach((dot, dotIndex) => {
+      dot.classList.toggle("is-active", dotIndex === index);
+    });
+  };
+
+  const update = () => {
+    const slidesPerView = getSlidesPerView();
+    const maxIndex = Math.max(0, slides.length - slidesPerView);
+    index = Math.min(index, maxIndex);
+
+    const gap = getGap();
+    const slideWidth = slides[0].getBoundingClientRect().width + gap;
+    track.style.transform = `translateX(${-index * slideWidth}px)`;
+
+    updateDots(slidesPerView);
+  };
+
+  const stopAuto = () => {
+    if (autoId) {
+      window.clearInterval(autoId);
+      autoId = null;
+    }
+  };
+
+  const startAuto = () => {
+    const slidesPerView = getSlidesPerView();
+    if (slides.length <= slidesPerView) return;
+    autoId = window.setInterval(() => {
+      const maxIndex = Math.max(0, slides.length - slidesPerView);
+      index = index >= maxIndex ? 0 : index + 1;
+      update();
+    }, 4200);
+  };
+
+  const restartAuto = () => {
+    stopAuto();
+    startAuto();
+  };
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      index = Math.max(0, index - 1);
+      update();
+      restartAuto();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      const slidesPerView = getSlidesPerView();
+      const maxIndex = Math.max(0, slides.length - slidesPerView);
+      index = Math.min(maxIndex, index + 1);
+      update();
+      restartAuto();
+    });
+  }
+
+  photoSlider.addEventListener("mouseenter", stopAuto);
+  photoSlider.addEventListener("mouseleave", startAuto);
+  photoSlider.addEventListener("focusin", stopAuto);
+  photoSlider.addEventListener("focusout", startAuto);
+
+  window.addEventListener("resize", () => {
+    window.requestAnimationFrame(update);
+  });
+
+  update();
+  startAuto();
+};
+
 const initStorageSync = () => {
   window.addEventListener("storage", (event) => {
     if (event.key === STORAGE_KEY || event.key === STORAGE_SYNC_KEY) {
@@ -1495,6 +1608,7 @@ const init = () => {
 
   scheduleIdle(() => {
     initPortfolioSlider();
+    initPhotoSlider();
     initLazyVideos();
     initEnhancedAnimations();
     initTypingEyebrow();

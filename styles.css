@@ -1162,8 +1162,21 @@ main {
   box-shadow: var(--shadow);
 }
 
+.photo-slider {
+  margin-top: 2.5rem;
+  --slides-per-view: 4;
+  --slide-gap: 1.2rem;
+  overflow: hidden;
+}
+
 .photo-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  gap: var(--slide-gap);
+  transition: transform 0.7s var(--ease);
+}
+
+.photo-grid .photo-tile {
+  flex: 0 0 calc((100% - (var(--slides-per-view) - 1) * var(--slide-gap)) / var(--slides-per-view));
 }
 
 .photo-tile {
@@ -2195,6 +2208,10 @@ textarea:focus {
     --slides-per-view: 2;
   }
 
+  .photo-slider {
+    --slides-per-view: 2;
+  }
+
   .contact {
     margin: 0 4vw 4rem;
   }
@@ -2243,6 +2260,10 @@ textarea:focus {
   }
 
   .portfolio-slider {
+    --slides-per-view: 1;
+  }
+
+  .photo-slider {
     --slides-per-view: 1;
   }
 
