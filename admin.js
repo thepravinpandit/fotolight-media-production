@@ -6,6 +6,7 @@ const STORAGE_KEY    = "fotolightData";
 const AUTH_KEY       = "fotolightAuth";
 const DEFAULT_USERNAME = "admin";
 const DEFAULT_PASSWORD = "fotolight2026";
+const MEDIA_SCHEMA_VERSION = "2026-03-29-media-refresh-1";
 
 // ── Default data fallbacks ────────────────────────────────────────────────────
 const DEFAULT_PHOTOS = (window.FOTOLIGHT_DEFAULT_DATA?.photos) || [
@@ -97,6 +98,15 @@ function sanitizePortfolio(items) {
 function sanitizeStoredMedia(data) {
   if (!data || typeof data !== "object") return data;
   const next = { ...data };
+  next.settings = { ...(data.settings || {}) };
+
+  if (next.settings.mediaSchemaVersion !== MEDIA_SCHEMA_VERSION) {
+    next.photos = DEFAULT_PHOTOS.map((item) => ({ ...item }));
+    next.portfolio = DEFAULT_PORTFOLIO.map((item) => ({ ...item }));
+    next.settings.mediaSchemaVersion = MEDIA_SCHEMA_VERSION;
+    return next;
+  }
+
   next.photos = sanitizePhotos(data.photos);
   next.portfolio = sanitizePortfolio(data.portfolio);
   return next;
@@ -133,6 +143,7 @@ function saveCurrent() {
   try {
     // Always read existing data first so we don't wipe other keys (videos, stats, etc.)
     const existing = loadStoredData() || {};
+    existing.settings = { ...(existing.settings || {}), mediaSchemaVersion: MEDIA_SCHEMA_VERSION };
     existing.photos    = sanitizePhotos(state.photos);
     existing.portfolio = sanitizePortfolio(state.portfolio);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));

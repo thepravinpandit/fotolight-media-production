@@ -268,6 +268,7 @@ const ORIGINAL_PORTFOLIO_SRCS = DEFAULT_DATA.portfolio.map((item) => item.src);
 const arraysEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const isUploadedImageSrc = (value) =>
   typeof value === "string" && value.startsWith("data:image/");
+const MEDIA_SCHEMA_VERSION = "2026-03-29-media-refresh-1";
 
 const getStoredData = () => {
   try {
@@ -320,6 +321,15 @@ const sanitizePortfolioItems = (items) => {
 const sanitizeStoredMediaData = (data) => {
   if (!data || typeof data !== "object") return data;
   const next = { ...data };
+  next.settings = { ...(data.settings || {}) };
+
+  if (next.settings.mediaSchemaVersion !== MEDIA_SCHEMA_VERSION) {
+    next.photos = deepClone(DEFAULT_DATA.photos);
+    next.portfolio = deepClone(DEFAULT_DATA.portfolio);
+    next.settings.mediaSchemaVersion = MEDIA_SCHEMA_VERSION;
+    return next;
+  }
+
   next.photos = sanitizePhotoItems(data.photos);
   next.portfolio = sanitizePortfolioItems(data.portfolio);
   return next;
@@ -337,10 +347,7 @@ const getData = () => {
   const stored = getStoredData();
   if (stored) {
     const sanitizedStored = sanitizeStoredMediaData(stored);
-    if (
-      !arraysEqual(stored.photos, sanitizedStored.photos) ||
-      !arraysEqual(stored.portfolio, sanitizedStored.portfolio)
-    ) {
+    if (JSON.stringify(stored) !== JSON.stringify(sanitizedStored)) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedStored));
       } catch (error) {
