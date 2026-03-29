@@ -162,7 +162,7 @@ const DEFAULT_DATA = window.FOTOLIGHT_DEFAULT_DATA || {
   useCasesCta: {
     text: "Not sure what you need? We’ll help you choose the right package.",
     label: "Get a Free Consult",
-    href: "#contact",
+    href: "tel:9818552743",
   },
   portfolio: [
     { src: "img/portfolio/optimized/1K2A9712.webp", alt: "Portfolio image 1" },
@@ -374,6 +374,17 @@ const toTelHref = (value) => {
     ? `+${raw.slice(1).replace(/\+/g, "")}`
     : raw.replace(/\+/g, "");
   return `tel:${normalized}`;
+};
+
+const parsePhoneNumbers = (value) => {
+  return String(value || "")
+    .split(/[\/,\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => ({
+      label: item,
+      href: toTelHref(item),
+    }));
 };
 
 const normalizeVideoSrc = (src) => {
@@ -856,6 +867,9 @@ const applyContact = (contact) => {
   if (details.length >= 3) {
     const emailValue = contact.email || "";
     const phoneValue = contact.phone || "";
+    const phoneNumbers = parsePhoneNumbers(phoneValue);
+    const primaryPhone = phoneNumbers[0]?.label || "9818552743";
+    const primaryPhoneHref = phoneNumbers[0]?.href || "tel:9818552743";
     const studioValue = contact.studio || "";
 
     const emailEl = details[0].querySelector("a, p");
@@ -866,19 +880,42 @@ const applyContact = (contact) => {
       }
     }
 
-    const phoneEl = details[1].querySelector("a, p");
-    if (phoneEl) {
-      phoneEl.textContent = phoneValue;
-      if (phoneEl.tagName === "A") {
-        phoneEl.href = toTelHref(phoneValue);
+    details[1].innerHTML = `<h3>Phone</h3>`;
+    const phoneWrap = document.createElement("div");
+    phoneWrap.className = "contact__phone-list";
+    phoneNumbers.forEach((phone, index) => {
+      const link = document.createElement("a");
+      link.className = "phone-link";
+      link.href = phone.href;
+      link.textContent = phone.label;
+      phoneWrap.appendChild(link);
+      if (index < phoneNumbers.length - 1) {
+        const separator = document.createElement("span");
+        separator.className = "contact__phone-separator";
+        separator.textContent = " / ";
+        phoneWrap.appendChild(separator);
       }
+    });
+    if (!phoneNumbers.length) {
+      const empty = document.createElement("p");
+      empty.textContent = phoneValue;
+      phoneWrap.appendChild(empty);
     }
+    details[1].appendChild(phoneWrap);
 
     const studioEl = details[2].querySelector("a, p");
     if (studioEl) studioEl.textContent = studioValue;
 
     const headerCall = document.querySelector(".header-call-link");
-    if (headerCall) headerCall.href = toTelHref(phoneValue);
+    if (headerCall) headerCall.href = primaryPhoneHref;
+
+    const consultBtn = document.querySelector(".use-cases__cta a");
+    if (consultBtn) consultBtn.href = primaryPhoneHref;
+
+    const heroCallBtn = document.querySelector(".hero__actions .btn");
+    if (heroCallBtn && /make memories together/i.test(heroCallBtn.textContent || "")) {
+      heroCallBtn.href = primaryPhoneHref;
+    }
   }
 
   const starter = document.querySelector(".contact__starter");

@@ -368,6 +368,17 @@ a {
   font-weight: 600;
 }
 
+.contact__phone-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  align-items: center;
+}
+
+.contact__phone-separator {
+  color: var(--muted);
+}
+
 .contact__details a,
 .site-footer a {
   transition: color 0.25s var(--ease);
