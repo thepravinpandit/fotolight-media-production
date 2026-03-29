@@ -73,7 +73,7 @@ function sanitizePhotos(items) {
     if (
       candidate &&
       typeof candidate.src === "string" &&
-      ORIGINAL_PHOTO_SRCS.includes(candidate.src)
+      (ORIGINAL_PHOTO_SRCS.includes(candidate.src) || isUploadedImageSrc(candidate.src))
     ) {
       return { src: candidate.src, alt: candidate.alt || fallback.alt || "" };
     }
@@ -306,19 +306,18 @@ function renderGalleryGrid(items, dataKey, addLabel, sectionHint) {
       const file = input.files?.[0];
       if (!file) return;
       try {
-        if (dataKey !== "portfolio") {
-          showToast("Photo tile uploads are locked to original project images.");
-          input.value = "";
-          return;
-        }
-        const resized = await resizeImage(file, 1280, 0.8);
+        const resized = await resizeImage(
+          file,
+          dataKey === "photo" ? 1200 : 1280,
+          dataKey === "photo" ? 0.78 : 0.8
+        );
         getList(dataKey)[idx].src = resized;
         if (!getList(dataKey)[idx].alt) {
           getList(dataKey)[idx].alt = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
         }
         setDirty(true);
         renderSection();
-        showToast("Portfolio image uploaded.");
+        showToast(dataKey === "photo" ? "Photo uploaded." : "Portfolio image uploaded.");
       } catch {
         showToast("Upload failed — try a different image.");
       } finally {
@@ -498,18 +497,6 @@ function migrateStoredData() {
   if (!data) return;
 
   let changed = false;
-  if (Array.isArray(data.photos)) {
-    const cleanPhotos = data.photos.filter(
-      (item) =>
-        item &&
-        typeof item.src === "string" &&
-        !item.src.startsWith("data:")
-    );
-    if (cleanPhotos.length !== data.photos.length) {
-      data.photos = cleanPhotos;
-      changed = true;
-    }
-  }
 
   if (changed) {
     try {

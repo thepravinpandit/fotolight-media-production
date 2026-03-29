@@ -286,7 +286,8 @@ const sanitizePhotoItems = (items) => {
     if (
       candidate &&
       typeof candidate.src === "string" &&
-      ORIGINAL_PHOTO_SRCS.includes(candidate.src)
+      (ORIGINAL_PHOTO_SRCS.includes(candidate.src) ||
+        isUploadedImageSrc(candidate.src))
     ) {
       return {
         src: candidate.src,
