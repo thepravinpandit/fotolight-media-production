@@ -965,7 +965,14 @@ const applyFooter = (footer) => {
     return;
   }
   copyrightEl.style.display = "";
-  copyrightEl.textContent = value;
+  if (value.includes("Pravin Pandit")) {
+    copyrightEl.innerHTML = value.replace(
+      "Pravin Pandit",
+      '<a href="https://pravinpandit.in/" target="_blank" rel="noopener noreferrer">Pravin Pandit</a>'
+    );
+  } else {
+    copyrightEl.textContent = value;
+  }
 };
 
 const applyMaintenance = (settings) => {

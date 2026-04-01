@@ -1573,6 +1573,15 @@ textarea:focus {
   text-align: right;
 }
 
+.site-footer__copyright a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.site-footer__copyright a:hover {
+  opacity: 0.85;
+}
+
 [data-animate] {
   opacity: 0;
   transform: translateY(28px) scale(0.98);
